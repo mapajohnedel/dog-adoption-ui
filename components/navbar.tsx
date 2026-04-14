@@ -19,15 +19,21 @@ export function Navbar() {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
-  const { supabase, user, loading } = useAuthUser()
-  const accountLabel = user?.user_metadata?.full_name ?? user?.email ?? 'Dashboard'
+  const { supabase, user, loading, isAdmin, isPartner } = useAuthUser()
+  const accountLabel = isAdmin
+    ? 'Admin Panel'
+    : isPartner
+      ? user?.user_metadata?.organization_name ?? 'Partner Dashboard'
+      : user?.user_metadata?.full_name ?? user?.email ?? 'Dashboard'
   const userEmail = user?.email ?? 'Signed in'
+  const accountHref = isAdmin ? '/admin' : isPartner ? '/partner' : '/dashboard'
+  const signedOutHref = isAdmin ? '/admin/login' : '/auth'
 
   const handleSignOut = async () => {
     setIsSigningOut(true)
     await supabase.auth.signOut()
     setIsOpen(false)
-    router.replace('/auth')
+    router.replace(signedOutHref)
     router.refresh()
     setIsSigningOut(false)
   }
@@ -62,6 +68,9 @@ export function Navbar() {
             <Link href="/browse" className="text-sm font-medium text-foreground transition-colors hover:text-primary">
               Browse Pets
             </Link>
+            <Link href="/partner/register" className="text-sm font-medium text-foreground transition-colors hover:text-primary">
+              For Shelters
+            </Link>
             <Link href="/#how-it-works" className="text-sm font-medium text-foreground transition-colors hover:text-primary">
               How It Works
             </Link>
@@ -91,9 +100,9 @@ export function Navbar() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild className="rounded-xl px-3 py-2">
-                    <Link href="/dashboard">
+                    <Link href={accountHref}>
                       <LayoutDashboard className="h-4 w-4" />
-                      Dashboard
+                      {isAdmin ? 'Admin Panel' : isPartner ? 'Partner Dashboard' : 'Dashboard'}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -139,6 +148,9 @@ export function Navbar() {
               <Link href="/browse" className="block rounded-xl px-4 py-3 text-base font-medium text-foreground transition-colors hover:bg-secondary/20">
                 Browse Pets
               </Link>
+              <Link href="/partner/register" className="block rounded-xl px-4 py-3 text-base font-medium text-foreground transition-colors hover:bg-secondary/20">
+                For Shelters
+              </Link>
               <Link href="/#how-it-works" className="block rounded-xl px-4 py-3 text-base font-medium text-foreground transition-colors hover:bg-secondary/20">
                 How It Works
               </Link>
@@ -163,11 +175,11 @@ export function Navbar() {
                     <p className="truncate text-sm text-muted-foreground">{userEmail}</p>
                   </div>
                   <Link
-                    href="/dashboard"
+                    href={accountHref}
                     className="block rounded-xl px-4 py-3 text-base font-medium text-foreground transition-colors hover:bg-secondary/20"
                     onClick={() => setIsOpen(false)}
                   >
-                    Dashboard
+                    {isAdmin ? 'Admin Panel' : isPartner ? 'Partner Dashboard' : 'Dashboard'}
                   </Link>
                   <button
                     onClick={handleSignOut}

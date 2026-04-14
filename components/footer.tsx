@@ -5,6 +5,7 @@ import { ArrowRight, HeartHandshake, Mail, MapPin, Phone } from 'lucide-react'
 const quickLinks = [
   { href: '/', label: 'Home' },
   { href: '/browse', label: 'Browse Pets' },
+  { href: '/partner/register', label: 'For Shelters' },
   { href: '/#how-it-works', label: 'How It Works' },
   { href: '/auth', label: 'Log In' },
 ]
@@ -12,7 +13,7 @@ const quickLinks = [
 const supportLinks = [
   { href: '/#featured-pets', label: 'Featured Pets' },
   { href: '/#contact', label: 'Adoption Support' },
-  { href: '/admin', label: 'Admin' },
+  { href: '/admin/login', label: 'Admin' },
 ]
 
 export function Footer() {

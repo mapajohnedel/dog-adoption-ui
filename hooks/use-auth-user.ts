@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
+import { isAdminUser, isPartnerUser } from '@/lib/auth/roles'
 import { createClient } from '@/lib/supabase/client'
 
 export function useAuthUser() {
@@ -46,6 +47,8 @@ export function useAuthUser() {
     supabase,
     user,
     loading,
+    isAdmin: isAdminUser(user),
+    isPartner: isPartnerUser(user),
     isAuthenticated: Boolean(user),
   }
 }

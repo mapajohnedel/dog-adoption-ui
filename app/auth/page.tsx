@@ -6,6 +6,7 @@ import { type FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight, HeartHandshake, ShieldCheck } from 'lucide-react'
 import { useAuthUser } from '@/hooks/use-auth-user'
+import { getAuthenticatedHome } from '@/lib/auth/admin'
 
 export default function AuthPage() {
   const router = useRouter()
@@ -21,7 +22,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace('/dashboard')
+      router.replace(getAuthenticatedHome(user))
     }
   }, [loading, router, user])
 
@@ -36,7 +37,7 @@ export default function AuthPage() {
     setIsSubmitting(true)
 
     if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -47,7 +48,7 @@ export default function AuthPage() {
         return
       }
 
-      router.replace('/dashboard')
+      router.replace(getAuthenticatedHome(data.user))
       router.refresh()
       return
     }
@@ -69,7 +70,7 @@ export default function AuthPage() {
     }
 
     if (data.session) {
-      router.replace('/dashboard')
+      router.replace(getAuthenticatedHome(data.user))
       router.refresh()
       return
     }
@@ -334,6 +335,21 @@ export default function AuthPage() {
                 {isLogin ? 'Register' : 'Sign in'}
               </button>
             </p>
+
+            <div className="mt-3 space-y-2 text-center text-sm text-muted-foreground">
+              <p>
+                Need shelter access?{' '}
+                <Link href="/partner/register" className="font-semibold text-primary transition-opacity hover:opacity-80">
+                  Apply as shelter or rescuer
+                </Link>
+              </p>
+              <p>
+                Super-admin access only?{' '}
+                <Link href="/admin/login" className="font-semibold text-primary transition-opacity hover:opacity-80">
+                  Admin login
+                </Link>
+              </p>
+            </div>
 
             <p className="mt-6 text-center text-xs leading-6 text-muted-foreground">
               By {isLogin ? 'signing in' : 'registering'}, you agree to our{' '}

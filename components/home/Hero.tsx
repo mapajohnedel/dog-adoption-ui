@@ -45,10 +45,10 @@ export function Hero({ dogs }: HeroProps) {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="#how-it-works"
+              href="/partner/register"
               className="inline-flex items-center justify-center gap-2 rounded-full border border-[#d6e8fb] bg-white px-6 py-3.5 text-base font-semibold text-[#145da0] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
             >
-              How it works
+              Register as Shelter
             </Link>
           </div>
 

@@ -10,7 +10,7 @@ import { Heart, FileText, Settings, LogOut, Clock, CheckCircle, XCircle } from '
 
 export default function DashboardPage() {
   const router = useRouter()
-  const { supabase, user, loading } = useAuthUser()
+  const { supabase, user, loading, isAdmin, isPartner } = useAuthUser()
   const [activeTab, setActiveTab] = useState<'favorites' | 'requests' | 'profile'>('favorites')
   const [isSigningOut, setIsSigningOut] = useState(false)
   const dogs = useDogCatalog()
@@ -23,7 +23,15 @@ export default function DashboardPage() {
     if (!loading && !user) {
       router.replace('/auth')
     }
-  }, [loading, router, user])
+
+    if (!loading && user && isAdmin) {
+      router.replace('/admin')
+    }
+
+    if (!loading && user && isPartner) {
+      router.replace('/partner')
+    }
+  }, [isAdmin, isPartner, loading, router, user])
 
   const handleSignOut = async () => {
     setIsSigningOut(true)
@@ -74,6 +82,10 @@ export default function DashboardPage() {
   }
 
   if (!user) {
+    return null
+  }
+
+  if (isAdmin || isPartner) {
     return null
   }
 
