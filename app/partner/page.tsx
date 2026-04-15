@@ -140,6 +140,7 @@ export default async function PartnerPage() {
                 </Link>
               </div>
             </div>
+
           </div>
         </div>
       </div>

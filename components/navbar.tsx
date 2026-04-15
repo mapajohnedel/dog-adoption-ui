@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, LayoutDashboard, LogOut, Menu, X } from 'lucide-react'
+import { ChevronDown, KeyRound, LayoutDashboard, LogOut, Menu, X } from 'lucide-react'
 import { useAuthUser } from '@/hooks/use-auth-user'
 import {
   DropdownMenu,
@@ -27,6 +27,7 @@ export function Navbar() {
       : user?.user_metadata?.full_name ?? user?.email ?? 'Dashboard'
   const userEmail = user?.email ?? 'Signed in'
   const accountHref = isAdmin ? '/admin' : isPartner ? '/partner' : '/dashboard'
+  const passwordHref = !isAdmin ? '/account/password' : null
   const signedOutHref = isAdmin ? '/admin/login' : '/auth'
   const desktopNavLinks = isAdmin
     ? [{ href: '/admin', label: 'Admin Panel' }]
@@ -111,6 +112,14 @@ export function Navbar() {
                       {isAdmin ? 'Admin Panel' : isPartner ? 'Partner Dashboard' : 'Dashboard'}
                     </Link>
                   </DropdownMenuItem>
+                  {passwordHref && (
+                    <DropdownMenuItem asChild className="rounded-xl px-3 py-2">
+                      <Link href={passwordHref}>
+                        <KeyRound className="h-4 w-4" />
+                        Update Password
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     variant="destructive"
                     className="rounded-xl px-3 py-2"
@@ -179,6 +188,15 @@ export function Navbar() {
                   >
                     {isAdmin ? 'Admin Panel' : isPartner ? 'Partner Dashboard' : 'Dashboard'}
                   </Link>
+                  {passwordHref && (
+                    <Link
+                      href={passwordHref}
+                      className="block rounded-xl px-4 py-3 text-base font-medium text-foreground transition-colors hover:bg-secondary/20"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Update Password
+                    </Link>
+                  )}
                   <button
                     onClick={handleSignOut}
                     disabled={isSigningOut}

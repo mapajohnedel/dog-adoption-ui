@@ -80,6 +80,16 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
+  if (pathname === '/account' || pathname.startsWith('/account/')) {
+    if (!user) {
+      return redirectWithCookies(request, response, '/auth')
+    }
+
+    if (isAdminUser(user)) {
+      return redirectWithCookies(request, response, '/admin')
+    }
+  }
+
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
     if (!user) {
       return redirectWithCookies(request, response, '/admin/login')
