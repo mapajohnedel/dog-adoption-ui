@@ -131,6 +131,9 @@ importers:
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      philippine-administrative-divisions:
+        specifier: ^2.0.3
+        version: 2.0.3
       react:
         specifier: 19.2.4
         version: 19.2.4
@@ -2573,6 +2576,9 @@ packages:
 
   path-to-regexp@8.3.0:
     resolution: {integrity: sha512-7jdwVIRtsP8MYpdXSwOS0YdD0Du+qOoF/AEPIt88PcCFrZCzx41oxku1jD88hZBwbNUIEfpqvuhjFaMAqMTWnA==}
+
+  philippine-administrative-divisions@2.0.3:
+    resolution: {integrity: sha512-Px6ADpIzyWZAXxvwqOTHyjrqqN9E9xvAacGXaTdLRkcaBp6P6sSd2G+CKUtzy95tSmxthZWJc4e9Psaq4bPp7Q==}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -5356,6 +5362,8 @@ snapshots:
   path-to-regexp@6.3.0: {}
 
   path-to-regexp@8.3.0: {}
+
+  philippine-administrative-divisions@2.0.3: {}
 
   picocolors@1.1.1: {}
 
