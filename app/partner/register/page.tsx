@@ -1,11 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { type FormEvent, useEffect, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowRight, Building2, HeartHandshake, MapPin, Phone, ShieldCheck, User } from 'lucide-react'
+import { ArrowRight, Building2, ChevronDown, HeartHandshake, MapPin, Phone, ShieldCheck, User } from 'lucide-react'
 import { useAuthUser } from '@/hooks/use-auth-user'
 import { getAuthenticatedHome } from '@/lib/auth/roles'
+import {
+  getCityOptionsByProvince,
+  getProvinceLabel,
+  philippineProvinceOptions,
+} from '@/lib/philippines-locations'
 import {
   partnerApplicationSchema,
   type PartnerApplicantType,
@@ -28,9 +33,14 @@ export default function PartnerRegisterPage() {
   const router = useRouter()
   const { user, loading } = useAuthUser()
   const [form, setForm] = useState<PartnerApplicationInput>(initialForm)
+  const [selectedProvinceKey, setSelectedProvinceKey] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const cityOptions = useMemo(
+    () => getCityOptionsByProvince(selectedProvinceKey),
+    [selectedProvinceKey]
+  )
 
   useEffect(() => {
     if (!loading && user) {
@@ -50,6 +60,12 @@ export default function PartnerRegisterPage() {
 
   const handleTypeChange = (applicantType: PartnerApplicantType) => {
     updateField('applicantType', applicantType)
+  }
+
+  const handleProvinceChange = (provinceKey: string) => {
+    setSelectedProvinceKey(provinceKey)
+    updateField('provinceOrRegion', provinceKey ? getProvinceLabel(provinceKey) : '')
+    updateField('city', '')
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -85,6 +101,7 @@ export default function PartnerRegisterPage() {
       }
 
       setForm(initialForm)
+      setSelectedProvinceKey('')
       setSuccessMessage(
         result.message ??
           'Application received. We will review your details before creating your partner login.'
@@ -300,28 +317,45 @@ export default function PartnerRegisterPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-medium text-foreground">City</label>
-                <input
-                  type="text"
-                  value={form.city}
-                  onChange={(event) => updateField('city', event.target.value)}
-                  placeholder="Quezon City"
-                  className="w-full rounded-2xl border border-[#dce9f8] bg-[#fcfdff] px-4 py-3 text-sm text-foreground placeholder-muted-foreground shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/25"
-                  required
-                />
+                <label className="mb-2 block text-sm font-medium text-foreground">Province or Region</label>
+                <div className="relative">
+                  <select
+                    value={selectedProvinceKey}
+                    onChange={(event) => handleProvinceChange(event.target.value)}
+                    className="w-full appearance-none rounded-2xl border border-[#dce9f8] bg-[#fcfdff] px-4 py-3 pr-12 text-sm text-foreground shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/25"
+                    required
+                  >
+                    <option value="">Select a province or region</option>
+                    {philippineProvinceOptions.map((province) => (
+                      <option key={province.key} value={province.key}>
+                        {province.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                </div>
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-foreground">
-                  Province or Region
-                </label>
-                <input
-                  type="text"
-                  value={form.provinceOrRegion}
-                  onChange={(event) => updateField('provinceOrRegion', event.target.value)}
-                  placeholder="Metro Manila"
-                  className="w-full rounded-2xl border border-[#dce9f8] bg-[#fcfdff] px-4 py-3 text-sm text-foreground placeholder-muted-foreground shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/25"
-                  required
-                />
+                <label className="mb-2 block text-sm font-medium text-foreground">City</label>
+                <div className="relative">
+                  <select
+                    value={form.city}
+                    onChange={(event) => updateField('city', event.target.value)}
+                    disabled={!selectedProvinceKey}
+                    className="w-full appearance-none rounded-2xl border border-[#dce9f8] bg-[#fcfdff] px-4 py-3 pr-12 text-sm text-foreground shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-60"
+                    required
+                  >
+                    <option value="">
+                      {selectedProvinceKey ? 'Select a city' : 'Select a province first'}
+                    </option>
+                    {cityOptions.map((city) => (
+                      <option key={city.value} value={city.value}>
+                        {city.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                </div>
               </div>
             </div>
 
