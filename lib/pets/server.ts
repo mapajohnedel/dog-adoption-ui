@@ -14,6 +14,7 @@ type PetRow = {
   location: string
   description: string
   image_url: string | null
+  image_urls: string[] | null
   vaccinated: boolean
   neutered: boolean
   status: 'draft' | 'published' | 'archived'
@@ -60,7 +61,8 @@ function mapPetToDog(
   pet: PetRow,
   profile: PartnerProfileSummary | undefined
 ): Dog {
-  const image = pet.image_url || createFallbackImage(pet.name)
+  const galleryImages = (pet.image_urls ?? []).filter(Boolean)
+  const image = galleryImages[0] || pet.image_url || createFallbackImage(pet.name)
 
   return {
     id: pet.id,
@@ -71,7 +73,7 @@ function mapPetToDog(
     size: pet.size,
     location: pet.location,
     image,
-    images: [image],
+    images: galleryImages.length > 0 ? galleryImages : [image],
     description: pet.description || '',
     vaccinated: pet.vaccinated,
     neutered: pet.neutered,
@@ -86,7 +88,7 @@ export async function listPublishedPets() {
   const { data: pets, error: petsError } = await supabase
     .from('pets')
     .select(
-      'id, partner_user_id, name, breed, age_years, gender, size, location, description, image_url, vaccinated, neutered, status'
+      'id, partner_user_id, name, breed, age_years, gender, size, location, description, image_url, image_urls, vaccinated, neutered, status'
     )
     .eq('status', 'published')
     .order('published_at', { ascending: false })
