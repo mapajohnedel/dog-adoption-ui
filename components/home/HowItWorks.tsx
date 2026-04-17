@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, CalendarDays, FileCheck2, Home, type LucideIcon } from 'lucide-react'
+import { ArrowRight, CalendarDays, FileCheck2, Home, Search, type LucideIcon } from 'lucide-react'
 
 type Step = {
   title: string
@@ -9,6 +9,13 @@ type Step = {
 }
 
 const steps: Step[] = [
+  {
+    title: 'Browse and Choose',
+    description:
+      'Start on AmponPH by browsing adoptable pets. Take your time, read each profile, and see who you might want to foster or adopt when you are ready.',
+    cta: 'Browse Pets',
+    icon: Search,
+  },
   {
     title: 'Schedule a Visit',
     description: 'Come say hello, meet available pets, and get guidance from the rescue team.',
@@ -41,7 +48,7 @@ export function HowItWorks() {
             Bringing a Pet Home &mdash; Here&apos;s How
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
-            A clear, friendly path from first visit to first cuddle on the couch.
+            A clear, friendly path from browsing pets you love to your first cuddle on the couch.
           </p>
         </div>
 

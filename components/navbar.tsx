@@ -32,6 +32,7 @@ export function Navbar() {
   const createListingHref = isPartner ? '/partner/listings/new' : null
   const signedOutHref = isAdmin ? '/admin/login' : '/auth'
   const isRegularUser = Boolean(user) && !isAdmin && !isPartner
+  const isGuest = !loading && !user
   const desktopNavLinks = isAdmin
     ? [{ href: '/admin', label: 'Admin Panel' }]
     : isPartner
@@ -43,15 +44,17 @@ export function Navbar() {
       : isRegularUser
         ? [
             { href: '/dashboard', label: 'Dashboard' },
-            { href: '/browse', label: 'Browse Pets' },
+            { href: '/browse', label: 'Adopt' },
+            { href: '/#success-stories', label: 'Success Stories' },
+            { href: '/dashboard#favorites', label: 'Favorites' },
           ]
       : [
           { href: '/', label: 'Home' },
-          { href: '/browse', label: 'Browse Pets' },
-          { href: '/partner/register', label: 'For Shelters' },
+          { href: '/browse', label: 'Adopt' },
+          { href: '/#success-stories', label: 'Success Stories' },
           { href: '/#how-it-works', label: 'How It Works' },
-          { href: '/#featured-pets', label: 'Featured' },
-          { href: '/#contact', label: 'Support' },
+          { href: '/partner/register', label: 'For Shelters' },
+          { href: '/auth', label: 'Login' },
         ]
   const mobileNavLinks = desktopNavLinks
   const ctaHref = isAdmin ? '/admin' : isPartner ? '/partner' : '/browse'
@@ -160,17 +163,11 @@ export function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            {!loading && !user && (
-              <Link
-                href="/auth"
-                className="px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary"
-              >
-                Log in
+            {(user || isGuest) && (
+              <Link href={ctaHref} className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-[0_16px_36px_-20px_rgba(249,115,22,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
+                {ctaLabel}
               </Link>
             )}
-            <Link href={ctaHref} className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-[0_16px_36px_-20px_rgba(249,115,22,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
-              {ctaLabel}
-            </Link>
           </div>
 
           <button
@@ -195,14 +192,6 @@ export function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              {!loading && !user && (
-                <Link
-                  href="/auth"
-                  className="block rounded-xl px-4 py-3 text-base font-medium text-foreground transition-colors hover:bg-secondary/20"
-                >
-                  Log in
-                </Link>
-              )}
               {!loading && user && (
                 <>
                   <div className="rounded-xl px-4 py-3">
@@ -252,13 +241,15 @@ export function Navbar() {
                   </button>
                 </>
               )}
-              <Link
-                href={ctaHref}
-                className="mt-3 block w-full rounded-full bg-primary px-4 py-3 text-center text-base font-medium text-primary-foreground transition-opacity hover:opacity-90"
-                onClick={() => setIsOpen(false)}
-              >
-                {ctaLabel}
-              </Link>
+              {(user || isGuest) && (
+                <Link
+                  href={ctaHref}
+                  className="mt-3 block w-full rounded-full bg-primary px-4 py-3 text-center text-base font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {ctaLabel}
+                </Link>
+              )}
             </div>
           </div>
         )}

@@ -33,6 +33,23 @@ export default function DashboardPage() {
     }
   }, [isAdmin, isPartner, loading, router, user])
 
+  useEffect(() => {
+    const syncTabFromHash = () => {
+      const hash = window.location.hash.replace('#', '')
+
+      if (hash === 'requests' || hash === 'profile' || hash === 'favorites') {
+        setActiveTab(hash)
+      }
+    }
+
+    syncTabFromHash()
+    window.addEventListener('hashchange', syncTabFromHash)
+
+    return () => {
+      window.removeEventListener('hashchange', syncTabFromHash)
+    }
+  }, [])
+
   const handleSignOut = async () => {
     setIsSigningOut(true)
     await supabase.auth.signOut()
