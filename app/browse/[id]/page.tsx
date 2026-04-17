@@ -2,11 +2,11 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { DogGallery } from '@/components/dog-gallery'
 import { DogCard } from '@/components/dog-card'
+import { AdoptActionButton } from '@/components/browse/adopt-action-button'
 import {
   ArrowLeft,
   CheckCircle,
   Heart,
-  HeartHandshake,
   Mail,
   MapPin,
   PawPrint,
@@ -99,13 +99,7 @@ export default async function DogProfilePage({
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3 xl:w-[28rem]">
-              <a
-                href="#contact-shelter"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 font-semibold text-primary-foreground shadow-[0_18px_38px_-18px_rgba(249,115,22,0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.01]"
-              >
-                <HeartHandshake className="h-4 w-4" />
-                Adopt {dog.name}
-              </a>
+              <AdoptActionButton petName={dog.name} />
               <a
                 href={`mailto:${dog.shelterEmail}`}
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-[#d6e8fb] bg-white px-6 py-3.5 font-semibold text-[#145da0] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"

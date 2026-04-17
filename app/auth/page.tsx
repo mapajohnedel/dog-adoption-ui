@@ -2,11 +2,27 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { type FormEvent, useEffect, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight, HeartHandshake, ShieldCheck } from 'lucide-react'
+import {
+  Mail,
+  Lock,
+  User,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  HeartHandshake,
+  ShieldCheck,
+  Phone,
+  ChevronDown,
+} from 'lucide-react'
 import { useAuthUser } from '@/hooks/use-auth-user'
 import { getAuthenticatedHome } from '@/lib/auth/admin'
+import {
+  getCityOptionsByProvince,
+  getProvinceLabel,
+  philippineProvinceOptions,
+} from '@/lib/philippines-locations'
 
 export default function AuthPage() {
   const router = useRouter()
@@ -16,9 +32,17 @@ export default function AuthPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const [contactNumber, setContactNumber] = useState('')
+  const [selectedProvinceKey, setSelectedProvinceKey] = useState('')
+  const [provinceOrRegion, setProvinceOrRegion] = useState('')
+  const [city, setCity] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const cityOptions = useMemo(
+    () => getCityOptionsByProvince(selectedProvinceKey),
+    [selectedProvinceKey]
+  )
 
   useEffect(() => {
     if (!loading && user) {
@@ -29,6 +53,12 @@ export default function AuthPage() {
   const resetMessages = () => {
     setErrorMessage(null)
     setSuccessMessage(null)
+  }
+
+  const handleProvinceChange = (provinceKey: string) => {
+    setSelectedProvinceKey(provinceKey)
+    setProvinceOrRegion(provinceKey ? getProvinceLabel(provinceKey) : '')
+    setCity('')
   }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -59,6 +89,10 @@ export default function AuthPage() {
       options: {
         data: {
           full_name: name,
+          phone: contactNumber,
+          contact_number: contactNumber,
+          province_or_region: provinceOrRegion,
+          city,
         },
       },
     })
@@ -213,22 +247,89 @@ export default function AuthPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4 mb-6">
               {!isLogin && (
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-foreground">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Juan Dela Cruz"
-                      className="w-full rounded-2xl border border-[#dce9f8] bg-[#fcfdff] py-3 pl-12 pr-4 text-sm text-foreground placeholder-muted-foreground shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/25"
-                      required
-                    />
+                <>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground">
+                      Full Name
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Juan Dela Cruz"
+                        className="w-full rounded-2xl border border-[#dce9f8] bg-[#fcfdff] py-3 pl-12 pr-4 text-sm text-foreground placeholder-muted-foreground shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/25"
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground">
+                      Contact Number
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="tel"
+                        value={contactNumber}
+                        onChange={(e) => setContactNumber(e.target.value)}
+                        placeholder="+63 917 000 0000"
+                        className="w-full rounded-2xl border border-[#dce9f8] bg-[#fcfdff] py-3 pl-12 pr-4 text-sm text-foreground placeholder-muted-foreground shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/25"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-foreground">
+                        Province or Region
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={selectedProvinceKey}
+                          onChange={(event) => handleProvinceChange(event.target.value)}
+                          className="w-full appearance-none rounded-2xl border border-[#dce9f8] bg-[#fcfdff] px-4 py-3 pr-12 text-sm text-foreground shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/25"
+                          required
+                        >
+                          <option value="">Select a province or region</option>
+                          {philippineProvinceOptions.map((province) => (
+                            <option key={province.key} value={province.key}>
+                              {province.label}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-foreground">
+                        City
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={city}
+                          onChange={(event) => setCity(event.target.value)}
+                          disabled={!selectedProvinceKey}
+                          className="w-full appearance-none rounded-2xl border border-[#dce9f8] bg-[#fcfdff] px-4 py-3 pr-12 text-sm text-foreground shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-60"
+                          required
+                        >
+                          <option value="">
+                            {selectedProvinceKey ? 'Select a city' : 'Select a province first'}
+                          </option>
+                          {cityOptions.map((locationCity) => (
+                            <option key={locationCity.value} value={locationCity.value}>
+                              {locationCity.label}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
 
               <div>

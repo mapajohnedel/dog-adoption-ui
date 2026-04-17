@@ -1,6 +1,11 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ArrowRight, MapPin } from 'lucide-react'
+import { useAuthUser } from '@/hooks/use-auth-user'
+import { toast } from '@/hooks/use-toast'
 import type { Dog } from '@/lib/mock-dogs'
 
 type PetCardProps = {
@@ -8,8 +13,44 @@ type PetCardProps = {
 }
 
 export function PetCard({ dog }: PetCardProps) {
+  const router = useRouter()
+  const { user, loading } = useAuthUser()
+
+  const requireLogin = () => {
+    if (!user) {
+      toast({
+        title: 'Login required',
+        description: 'Please login first to continue with adoption.',
+      })
+      router.push('/auth')
+      return false
+    }
+    return true
+  }
+
+  const handleCardClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (loading) {
+      event.preventDefault()
+      return
+    }
+
+    if (!requireLogin()) {
+      event.preventDefault()
+    }
+  }
+
+  const handleAdoptClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (loading) return
+    if (!requireLogin()) return
+
+    router.push(`/browse/${dog.id}#contact-shelter`)
+  }
+
   return (
-    <Link href={`/browse/${dog.id}`} className="group block">
+    <Link href={`/browse/${dog.id}`} className="group block" onClick={handleCardClick}>
       <article className="overflow-hidden rounded-[2rem] border border-[#edf3fb] bg-white shadow-[0_20px_60px_-36px_rgba(20,44,90,0.32)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_28px_80px_-40px_rgba(20,44,90,0.45)]">
         <div className="relative aspect-[4/4.5] overflow-hidden bg-gradient-to-br from-[#fff2e7] to-[#eef7ff]">
           <Image
@@ -47,10 +88,15 @@ export function PetCard({ dog }: PetCardProps) {
 
           <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">{dog.description}</p>
 
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#145da0] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-300 group-hover:bg-primary">
+          <button
+            type="button"
+            onClick={handleAdoptClick}
+            className="inline-flex items-center gap-2 rounded-full bg-[#145da0] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-300 group-hover:bg-primary disabled:cursor-not-allowed disabled:opacity-70"
+            disabled={loading}
+          >
             Adopt Me
             <ArrowRight className="h-4 w-4" />
-          </div>
+          </button>
         </div>
       </article>
     </Link>
