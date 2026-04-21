@@ -24,6 +24,17 @@ function redirectWithCookies(
 export async function updateSession(request: NextRequest) {
   const { supabaseUrl, supabasePublishableKey } = getSupabaseConfig()
   const pathname = request.nextUrl.pathname
+  const needsSessionLookup =
+    pathname === '/auth' ||
+    pathname === '/admin/login' ||
+    pathname === '/partner/register' ||
+    pathname.startsWith('/dashboard') ||
+    pathname === '/account' ||
+    pathname.startsWith('/account/') ||
+    pathname === '/admin' ||
+    pathname.startsWith('/admin/') ||
+    pathname === '/partner' ||
+    pathname.startsWith('/partner/')
 
   let response = NextResponse.next({
     request: {
@@ -50,9 +61,19 @@ export async function updateSession(request: NextRequest) {
     },
   })
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  if (!needsSessionLookup) {
+    return response
+  }
+
+  let user: Awaited<ReturnType<typeof supabase.auth.getUser>>['data']['user'] = null
+
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    // Fail open for middleware lookups when auth endpoint is temporarily unreachable.
+    user = null
+  }
 
   if (pathname === '/auth' || pathname === '/admin/login') {
     if (user) {

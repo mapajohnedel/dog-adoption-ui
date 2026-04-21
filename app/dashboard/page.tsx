@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { DogCard } from '@/components/dog-card'
 import {
   Dialog,
   DialogContent,
@@ -14,7 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { useDogCatalog } from '@/lib/dog-catalog'
 import { useAuthUser } from '@/hooks/use-auth-user'
 import { Heart, FileText, Settings, LogOut, Clock, CheckCircle, XCircle } from 'lucide-react'
 
@@ -23,10 +21,8 @@ type AdoptionRequestRow = {
   status: 'pending' | 'approved' | 'rejected'
   created_at: string
   partner_user_id: string
-  pets:
-    | { name: string; image_url: string | null; image_urls: string[] | null }
-    | { name: string; image_url: string | null; image_urls: string[] | null }[]
-    | null
+  pet_name: string | null
+  pet_image_url: string | null
 }
 
 type DashboardAdoptionRequest = {
@@ -39,6 +35,38 @@ type DashboardAdoptionRequest = {
   partnerPhone: string
   status: 'pending' | 'approved' | 'rejected'
   date: string
+}
+
+type FavoriteRow = {
+  pet_id: string
+  created_at: string
+  pet_name_snapshot: string
+  pet_image_snapshot: string | null
+  pets:
+    | {
+        id: string
+        breed: string
+        location: string
+        image_url: string | null
+        image_urls: string[] | null
+      }
+    | {
+        id: string
+        breed: string
+        location: string
+        image_url: string | null
+        image_urls: string[] | null
+      }[]
+    | null
+}
+
+type DashboardFavorite = {
+  petId: string
+  name: string
+  imageUrl: string | null
+  breed: string
+  location: string
+  savedAt: string
 }
 
 type PublicPartnerContactProfile = {
@@ -160,10 +188,12 @@ export default function DashboardPage() {
   const { supabase, user, loading, isAdmin, isPartner } = useAuthUser()
   const [activeTab, setActiveTab] = useState<'favorites' | 'requests' | 'profile'>('favorites')
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [favorites, setFavorites] = useState<DashboardFavorite[]>([])
+  const [favoritesLoading, setFavoritesLoading] = useState(true)
+  const [favoritesError, setFavoritesError] = useState<string | null>(null)
   const [adoptionRequests, setAdoptionRequests] = useState<DashboardAdoptionRequest[]>([])
   const [requestsLoading, setRequestsLoading] = useState(true)
   const [requestsError, setRequestsError] = useState<string | null>(null)
-  const dogs = useDogCatalog()
   const displayName = user?.user_metadata?.full_name ?? 'Your profile'
   const displayEmail = user?.email ?? 'Add your email'
   const displayPhone = user?.user_metadata?.phone ?? 'Add your phone number'
@@ -207,7 +237,90 @@ export default function DashboardPage() {
     router.refresh()
   }
 
-  const favorites = dogs.slice(0, 4)
+  useEffect(() => {
+    if (loading) {
+      return
+    }
+
+    if (!user || isAdmin || isPartner) {
+      setFavorites([])
+      setFavoritesLoading(false)
+      setFavoritesError(null)
+      return
+    }
+
+    let cancelled = false
+
+    const loadFavorites = async () => {
+      setFavoritesLoading(true)
+      setFavoritesError(null)
+
+      const { data, error } = await supabase
+        .from('favorite_pets')
+        .select(
+          'pet_id, created_at, pet_name_snapshot, pet_image_snapshot, pets(id, breed, location, image_url, image_urls)'
+        )
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (cancelled) {
+        return
+      }
+
+      if (error) {
+        setFavoritesError(error.message)
+        setFavorites([])
+        setFavoritesLoading(false)
+        return
+      }
+
+      const mapped = ((data ?? []) as FavoriteRow[]).map((favorite) => {
+        const pet = getSingleRelation(favorite.pets)
+        return {
+          petId: favorite.pet_id,
+          name: favorite.pet_name_snapshot,
+          imageUrl:
+            pet?.image_urls?.[0] ?? pet?.image_url ?? favorite.pet_image_snapshot ?? null,
+          breed: pet?.breed ?? 'Breed unavailable',
+          location: pet?.location ?? 'Location unavailable',
+          savedAt: favorite.created_at,
+        }
+      })
+
+      setFavorites(mapped)
+      setFavoritesLoading(false)
+    }
+
+    void loadFavorites()
+
+    return () => {
+      cancelled = true
+    }
+  }, [isAdmin, isPartner, loading, supabase, user])
+
+  const handleRemoveFavorite = async (petId: string) => {
+    try {
+      const response = await fetch('/api/favorites', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ petId }),
+      })
+
+      const payload = (await response.json()) as { error?: string }
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Unable to remove favorite.')
+      }
+
+      setFavorites((current) => current.filter((favorite) => favorite.petId !== petId))
+    } catch (caughtError) {
+      setFavoritesError(
+        caughtError instanceof Error ? caughtError.message : 'Unable to remove favorite.'
+      )
+    }
+  }
 
   useEffect(() => {
     if (loading) {
@@ -227,13 +340,7 @@ export default function DashboardPage() {
       setRequestsLoading(true)
       setRequestsError(null)
 
-      const { data, error } = await supabase
-        .from('adoption_requests')
-        .select(
-          'id, status, created_at, partner_user_id, pets(name, image_url, image_urls)'
-        )
-        .eq('requester_user_id', user.id)
-        .order('created_at', { ascending: false })
+      const { data, error } = await supabase.rpc('get_requester_adoption_requests_details')
 
       if (cancelled) {
         return
@@ -274,13 +381,12 @@ export default function DashboardPage() {
       }
 
       const mapped = requestRows.map((request) => {
-        const pet = getSingleRelation(request.pets)
         const partnerProfile = profileByUserId.get(request.partner_user_id)
 
         return {
           id: request.id,
-          dogName: pet?.name ?? 'Pet listing',
-          dogImageUrl: pet?.image_urls?.[0] ?? pet?.image_url ?? null,
+          dogName: request.pet_name ?? 'Pet listing',
+          dogImageUrl: request.pet_image_url ?? null,
           shelterName: partnerProfile?.organization_name ?? 'Partner organization',
           partnerContactName: partnerProfile?.contact_person_name ?? 'Partner representative',
           partnerEmail: partnerProfile?.email ?? 'No email available',
@@ -392,14 +498,67 @@ export default function DashboardPage() {
                   <h2 className="mb-2 text-2xl font-bold text-foreground">
                     My Favorite Dogs
                   </h2>
-                  <p className="text-muted-foreground">
-                    {favorites.length} saved dog{favorites.length !== 1 ? 's' : ''}
-                  </p>
+                  {!favoritesLoading && !favoritesError && (
+                    <p className="text-muted-foreground">
+                      {favorites.length} saved dog{favorites.length !== 1 ? 's' : ''}
+                    </p>
+                  )}
                 </div>
-                {favorites.length > 0 ? (
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {favorites.map((dog) => (
-                      <DogCard key={dog.id} dog={dog} layout="landscape" />
+                {favoritesLoading ? (
+                  <div className="rounded-lg border border-border bg-white p-8">
+                    <p className="text-sm text-muted-foreground">Loading your favorites...</p>
+                  </div>
+                ) : favoritesError ? (
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-8">
+                    <p className="text-sm text-red-700">Failed to load favorites: {favoritesError}</p>
+                  </div>
+                ) : favorites.length > 0 ? (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {favorites.map((favorite) => (
+                      <div
+                        key={favorite.petId}
+                        className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm"
+                      >
+                        <div className="flex items-start gap-4 p-4">
+                          {favorite.imageUrl ? (
+                            <Image
+                              src={favorite.imageUrl}
+                              alt={favorite.name}
+                              width={64}
+                              height={64}
+                              unoptimized
+                              className="h-16 w-16 rounded-lg object-cover"
+                            />
+                          ) : (
+                            <div className="h-16 w-16 rounded-lg bg-muted" />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <h3 className="truncate text-lg font-semibold text-foreground">
+                              {favorite.name}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">{favorite.breed}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">{favorite.location}</p>
+                            <p className="mt-2 text-xs text-muted-foreground">
+                              Saved on {new Date(favorite.savedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between border-t border-border px-4 py-3">
+                          <Link
+                            href={`/browse/${favorite.petId}`}
+                            className="text-sm font-medium text-[#145da0] transition-colors hover:text-primary"
+                          >
+                            View pet
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFavorite(favorite.petId)}
+                            className="text-sm font-medium text-red-600 transition-colors hover:text-red-700"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 ) : (
