@@ -99,7 +99,7 @@ export default async function DogProfilePage({
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3 xl:w-[28rem]">
-              <AdoptActionButton petName={dog.name} />
+              <AdoptActionButton petId={dog.id} petName={dog.name} />
               <a
                 href={`mailto:${dog.shelterEmail}`}
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-[#d6e8fb] bg-white px-6 py-3.5 font-semibold text-[#145da0] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"

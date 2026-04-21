@@ -4,7 +4,17 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, FilePlus2, KeyRound, LayoutDashboard, LogOut, Menu, PawPrint, X } from 'lucide-react'
+import {
+  ChevronDown,
+  FilePlus2,
+  FileText,
+  KeyRound,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  PawPrint,
+  X,
+} from 'lucide-react'
 import { useAuthUser } from '@/hooks/use-auth-user'
 import {
   DropdownMenu,
@@ -29,6 +39,7 @@ export function Navbar() {
   const accountHref = isAdmin ? '/admin' : isPartner ? '/partner' : '/dashboard'
   const passwordHref = !isAdmin ? '/account/password' : null
   const partnerListingsHref = isPartner ? '/partner/listings' : null
+  const partnerRequestsHref = isPartner ? '/partner/requests' : null
   const createListingHref = isPartner ? '/partner/listings/new' : null
   const signedOutHref = isAdmin ? '/admin/login' : '/auth'
   const isRegularUser = Boolean(user) && !isAdmin && !isPartner
@@ -66,6 +77,7 @@ export function Navbar() {
   const partnerDesktopNav = [
     { href: '/partner', label: 'Partner Dashboard' },
     { href: '/partner/listings', label: 'My Pets' },
+    { href: '/partner/requests', label: 'Requests' },
     { href: '/partner/listings/new', label: 'Create Listing' },
   ]
   const partnerMobileNav = [{ href: '/support', label: 'Support' }, ...partnerDesktopNav]
@@ -187,6 +199,14 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                   )}
+                  {partnerRequestsHref && (
+                    <DropdownMenuItem asChild className="rounded-xl px-3 py-2">
+                      <Link href={partnerRequestsHref}>
+                        <FileText className="h-4 w-4" />
+                        Adoption Requests
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     variant="destructive"
                     className="rounded-xl px-3 py-2"
@@ -266,6 +286,15 @@ export function Navbar() {
                       onClick={() => setIsOpen(false)}
                     >
                       Create Listing
+                    </Link>
+                  )}
+                  {partnerRequestsHref && (
+                    <Link
+                      href={partnerRequestsHref}
+                      className="block rounded-xl px-4 py-3 text-base font-medium text-foreground transition-colors hover:bg-secondary/20"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Adoption Requests
                     </Link>
                   )}
                   <button

@@ -139,6 +139,12 @@ export default async function PartnerPage() {
                   Create a new pet listing
                 </Link>
                 <Link
+                  href="/partner/requests"
+                  className="block rounded-2xl border border-border px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary/10"
+                >
+                  Review adoption requests
+                </Link>
+                <Link
                   href="/browse"
                   className="block rounded-2xl border border-border px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary/10"
                 >

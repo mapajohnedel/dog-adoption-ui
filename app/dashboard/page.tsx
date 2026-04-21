@@ -2,17 +2,167 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { DogCard } from '@/components/dog-card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { useDogCatalog } from '@/lib/dog-catalog'
 import { useAuthUser } from '@/hooks/use-auth-user'
 import { Heart, FileText, Settings, LogOut, Clock, CheckCircle, XCircle } from 'lucide-react'
+
+type AdoptionRequestRow = {
+  id: string
+  status: 'pending' | 'approved' | 'rejected'
+  created_at: string
+  partner_user_id: string
+  pets:
+    | { name: string; image_url: string | null; image_urls: string[] | null }
+    | { name: string; image_url: string | null; image_urls: string[] | null }[]
+    | null
+}
+
+type DashboardAdoptionRequest = {
+  id: string
+  dogName: string
+  dogImageUrl: string | null
+  shelterName: string
+  partnerContactName: string
+  partnerEmail: string
+  partnerPhone: string
+  status: 'pending' | 'approved' | 'rejected'
+  date: string
+}
+
+type PublicPartnerContactProfile = {
+  user_id: string
+  organization_name: string
+  contact_person_name: string
+  email: string
+  phone: string
+}
+
+function getSingleRelation<T>(value: T | T[] | null | undefined): T | null {
+  if (!value) {
+    return null
+  }
+
+  return Array.isArray(value) ? value[0] ?? null : value
+}
+
+function RequestOutcomeModal({
+  status,
+  dogName,
+  shelterName,
+  partnerContactName,
+  partnerEmail,
+  partnerPhone,
+}: {
+  status: 'approved' | 'rejected'
+  dogName: string
+  shelterName: string
+  partnerContactName: string
+  partnerEmail: string
+  partnerPhone: string
+}) {
+  const isApproved = status === 'approved'
+  const hasEmail = partnerEmail.includes('@')
+  const hasPhone = !partnerPhone.toLowerCase().includes('no phone')
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          className={`rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
+            isApproved
+              ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+              : 'bg-red-50 text-red-700 hover:bg-red-100'
+          }`}
+        >
+          View update
+        </button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {isApproved ? 'Congratulations, you have been chosen!' : 'Update on your request'}
+          </DialogTitle>
+          <DialogDescription>
+            {isApproved
+              ? `Your request for ${dogName} was approved.`
+              : `Sorry, your request for ${dogName} was rejected.`}
+          </DialogDescription>
+        </DialogHeader>
+
+        {isApproved ? (
+          <div className="space-y-3">
+            <div className="rounded-lg border border-emerald-100 bg-emerald-50/50 p-4">
+              <p className="mb-3 text-sm font-semibold text-emerald-700">Next Steps</p>
+              <ul className="space-y-2 text-sm text-foreground">
+                <li>✅ Contact the rescuer</li>
+                <li>📅 Schedule a visit</li>
+                <li>🐾 Meet the pet</li>
+                <li>❤️ Complete adoption</li>
+              </ul>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm">
+              <p className="font-semibold text-foreground">{shelterName}</p>
+              <p className="mt-1 text-muted-foreground">Contact person: {partnerContactName}</p>
+              <p className="mt-1 text-muted-foreground">
+                Email:{' '}
+                {hasEmail ? (
+                  <a href={`mailto:${partnerEmail}`} className="font-medium text-[#145da0] hover:underline">
+                    {partnerEmail}
+                  </a>
+                ) : (
+                  <span>{partnerEmail}</span>
+                )}
+              </p>
+              <p className="mt-1 text-muted-foreground">
+                Phone:{' '}
+                {hasPhone ? (
+                  <a href={`tel:${partnerPhone}`} className="font-medium text-[#145da0] hover:underline">
+                    {partnerPhone}
+                  </a>
+                ) : (
+                  <span>{partnerPhone}</span>
+                )}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-red-100 bg-red-50/60 p-4 text-sm text-red-700">
+            The partner selected another adopter for now. You can still browse and submit new
+            requests for other pets.
+          </div>
+        )}
+
+        <DialogFooter>
+          <span className="text-xs text-muted-foreground">
+            {isApproved ? 'Wishing you and your new pet a happy journey.' : 'Thank you for your interest in adopting.'}
+          </span>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 export default function DashboardPage() {
   const router = useRouter()
   const { supabase, user, loading, isAdmin, isPartner } = useAuthUser()
   const [activeTab, setActiveTab] = useState<'favorites' | 'requests' | 'profile'>('favorites')
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [adoptionRequests, setAdoptionRequests] = useState<DashboardAdoptionRequest[]>([])
+  const [requestsLoading, setRequestsLoading] = useState(true)
+  const [requestsError, setRequestsError] = useState<string | null>(null)
   const dogs = useDogCatalog()
   const displayName = user?.user_metadata?.full_name ?? 'Your profile'
   const displayEmail = user?.email ?? 'Add your email'
@@ -57,31 +207,99 @@ export default function DashboardPage() {
     router.refresh()
   }
 
-  // Mock favorites and requests until the Supabase data layer is added.
   const favorites = dogs.slice(0, 4)
-  const adoptionRequests = [
-    {
-      id: 1,
-      dogName: 'Max',
-      shelterName: 'Bay Area Dog Rescue',
-      status: 'pending',
-      date: '2024-03-10',
-    },
-    {
-      id: 2,
-      dogName: 'Luna',
-      shelterName: 'Seattle Animal Shelter',
-      status: 'approved',
-      date: '2024-03-05',
-    },
-    {
-      id: 3,
-      dogName: 'Charlie',
-      shelterName: 'Portland Rescue Dogs',
-      status: 'rejected',
-      date: '2024-02-28',
-    },
-  ]
+
+  useEffect(() => {
+    if (loading) {
+      return
+    }
+
+    if (!user || isAdmin || isPartner) {
+      setAdoptionRequests([])
+      setRequestsLoading(false)
+      setRequestsError(null)
+      return
+    }
+
+    let cancelled = false
+
+    const loadAdoptionRequests = async () => {
+      setRequestsLoading(true)
+      setRequestsError(null)
+
+      const { data, error } = await supabase
+        .from('adoption_requests')
+        .select(
+          'id, status, created_at, partner_user_id, pets(name, image_url, image_urls)'
+        )
+        .eq('requester_user_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (cancelled) {
+        return
+      }
+
+      if (error) {
+        setRequestsError(error.message)
+        setAdoptionRequests([])
+        setRequestsLoading(false)
+        return
+      }
+
+      const requestRows = (data ?? []) as AdoptionRequestRow[]
+      const partnerIds = Array.from(new Set(requestRows.map((request) => request.partner_user_id)))
+      let profileByUserId = new Map<string, PublicPartnerContactProfile>()
+
+      if (partnerIds.length > 0) {
+        const { data: partnerProfiles, error: partnerProfilesError } = await supabase.rpc(
+          'get_public_partner_contact_profiles',
+          {
+            partner_ids: partnerIds,
+          }
+        )
+
+        if (partnerProfilesError) {
+          setRequestsError(partnerProfilesError.message)
+          setAdoptionRequests([])
+          setRequestsLoading(false)
+          return
+        }
+
+        profileByUserId = new Map(
+          ((partnerProfiles ?? []) as PublicPartnerContactProfile[]).map((profile) => [
+            profile.user_id,
+            profile,
+          ])
+        )
+      }
+
+      const mapped = requestRows.map((request) => {
+        const pet = getSingleRelation(request.pets)
+        const partnerProfile = profileByUserId.get(request.partner_user_id)
+
+        return {
+          id: request.id,
+          dogName: pet?.name ?? 'Pet listing',
+          dogImageUrl: pet?.image_urls?.[0] ?? pet?.image_url ?? null,
+          shelterName: partnerProfile?.organization_name ?? 'Partner organization',
+          partnerContactName: partnerProfile?.contact_person_name ?? 'Partner representative',
+          partnerEmail: partnerProfile?.email ?? 'No email available',
+          partnerPhone: partnerProfile?.phone ?? 'No phone listed',
+          status: request.status,
+          date: request.created_at,
+        }
+      })
+
+      setAdoptionRequests(mapped)
+      setRequestsLoading(false)
+    }
+
+    void loadAdoptionRequests()
+
+    return () => {
+      cancelled = true
+    }
+  }, [isAdmin, isPartner, loading, supabase, user])
 
   if (loading) {
     return (
@@ -210,28 +428,54 @@ export default function DashboardPage() {
                   <h2 className="mb-2 text-2xl font-bold text-foreground">
                     Adoption Requests
                   </h2>
-                  <p className="text-muted-foreground">
-                    {adoptionRequests.length} request{adoptionRequests.length !== 1 ? 's' : ''}
-                  </p>
+                  {!requestsLoading && !requestsError && (
+                    <p className="text-muted-foreground">
+                      {adoptionRequests.length} request{adoptionRequests.length !== 1 ? 's' : ''}
+                    </p>
+                  )}
                 </div>
-                {adoptionRequests.length > 0 ? (
+                {requestsLoading ? (
+                  <div className="rounded-lg border border-border bg-white p-8">
+                    <p className="text-sm text-muted-foreground">Loading your adoption requests...</p>
+                  </div>
+                ) : requestsError ? (
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-8">
+                    <p className="text-sm text-red-700">
+                      Failed to load adoption requests: {requestsError}
+                    </p>
+                  </div>
+                ) : adoptionRequests.length > 0 ? (
                   <div className="space-y-4">
                     {adoptionRequests.map((request) => (
                       <div
                         key={request.id}
                         className="flex flex-col gap-4 rounded-lg border border-border bg-white p-6 sm:flex-row sm:items-center sm:justify-between"
                       >
-                        <div className="flex-1">
-                          <h3 className="mb-1 text-lg font-semibold text-foreground">
-                            {request.dogName}
-                          </h3>
-                          <p className="mb-2 text-sm text-muted-foreground">
-                            {request.shelterName}
-                          </p>
-                          <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Clock size={14} />
-                            Applied on {new Date(request.date).toLocaleDateString()}
-                          </p>
+                        <div className="flex flex-1 items-start gap-3">
+                          {request.dogImageUrl ? (
+                            <Image
+                              src={request.dogImageUrl}
+                              alt={request.dogName}
+                              width={52}
+                              height={52}
+                              unoptimized
+                              className="h-[52px] w-[52px] rounded-lg object-cover"
+                            />
+                          ) : (
+                            <div className="h-[52px] w-[52px] rounded-lg bg-muted" />
+                          )}
+                          <div>
+                            <h3 className="mb-1 text-lg font-semibold text-foreground">
+                              {request.dogName}
+                            </h3>
+                            <p className="mb-2 text-sm text-muted-foreground">
+                              {request.shelterName}
+                            </p>
+                            <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Clock size={14} />
+                              Applied on {new Date(request.date).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           {request.status === 'pending' && (
@@ -243,20 +487,40 @@ export default function DashboardPage() {
                             </>
                           )}
                           {request.status === 'approved' && (
-                            <>
-                              <CheckCircle size={20} className="text-green-600" />
-                              <span className="text-sm font-medium text-green-600">
-                                Approved
+                            <div className="flex flex-col items-start gap-2 sm:items-end">
+                              <span className="inline-flex items-center gap-2">
+                                <CheckCircle size={20} className="text-green-600" />
+                                <span className="text-sm font-medium text-green-600">
+                                  Approved
+                                </span>
                               </span>
-                            </>
+                              <RequestOutcomeModal
+                                status="approved"
+                                dogName={request.dogName}
+                                shelterName={request.shelterName}
+                                partnerContactName={request.partnerContactName}
+                                partnerEmail={request.partnerEmail}
+                                partnerPhone={request.partnerPhone}
+                              />
+                            </div>
                           )}
                           {request.status === 'rejected' && (
-                            <>
-                              <XCircle size={20} className="text-red-600" />
-                              <span className="text-sm font-medium text-red-600">
-                                Rejected
+                            <div className="flex flex-col items-start gap-2 sm:items-end">
+                              <span className="inline-flex items-center gap-2">
+                                <XCircle size={20} className="text-red-600" />
+                                <span className="text-sm font-medium text-red-600">
+                                  Rejected
+                                </span>
                               </span>
-                            </>
+                              <RequestOutcomeModal
+                                status="rejected"
+                                dogName={request.dogName}
+                                shelterName={request.shelterName}
+                                partnerContactName={request.partnerContactName}
+                                partnerEmail={request.partnerEmail}
+                                partnerPhone={request.partnerPhone}
+                              />
+                            </div>
                           )}
                         </div>
                       </div>

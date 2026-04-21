@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowLeft, FilePlus2, MapPin, PawPrint, PencilLine } from 'lucide-react'
+import { ArrowLeft, FilePlus2, FileText, MapPin, PawPrint, PencilLine } from 'lucide-react'
 import { DeletePetListingButton } from '@/components/partner/delete-pet-listing-button'
 import { PetListingThumbnail } from '@/components/partner/pet-listing-thumbnail'
 import { getAuthenticatedHome, isPartnerUser } from '@/lib/auth/roles'
@@ -112,10 +112,19 @@ export default async function PartnerListingsPage() {
                     <tr key={pet.id} className="align-top">
                       <td className="px-5 py-4">
                         <div className="flex items-start gap-4">
-                          <PetListingThumbnail src={pet.image_url} alt={pet.name} />
+                          <Link href={`/partner/listings/${pet.id}/requests`} className="shrink-0">
+                            <PetListingThumbnail src={pet.image_url} alt={pet.name} />
+                          </Link>
 
                           <div className="min-w-0">
-                            <h2 className="text-base font-semibold text-foreground">{pet.name}</h2>
+                            <h2 className="text-base font-semibold text-foreground">
+                              <Link
+                                href={`/partner/listings/${pet.id}/requests`}
+                                className="transition-colors hover:text-primary"
+                              >
+                                {pet.name}
+                              </Link>
+                            </h2>
                             <p className="mt-1 text-sm text-muted-foreground">{pet.breed}</p>
                             <p className="mt-2 line-clamp-2 max-w-xs text-sm leading-6 text-muted-foreground">
                               {pet.description || 'No description added yet.'}
@@ -190,6 +199,13 @@ export default async function PartnerListingsPage() {
                           >
                             <PencilLine className="h-4 w-4" />
                             Edit
+                          </Link>
+                          <Link
+                            href={`/partner/listings/${pet.id}/requests`}
+                            className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-secondary/10"
+                          >
+                            <FileText className="h-4 w-4" />
+                            Requests
                           </Link>
                           <DeletePetListingButton petId={pet.id} petName={pet.name} />
                         </div>
