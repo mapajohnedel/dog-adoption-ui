@@ -70,15 +70,15 @@ export function Footer() {
             <div className="mt-6 space-y-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-[#145da0]" />
-                <span>hello@amponph.org</span>
+                <span>mapajohnedel@gmail.com</span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-[#145da0]" />
-                <span>+63 917 000 0000</span>
+                <span>+63 946 832 8005</span>
               </div>
               <div className="flex items-center gap-3">
                 <MapPin className="h-4 w-4 text-[#145da0]" />
-                <span>Metro Manila, Philippines</span>
+                <span>Bacolod, Philippines</span>
               </div>
             </div>
           </div>
@@ -133,10 +133,10 @@ export function Footer() {
         <div className="mt-8 flex flex-col gap-3 border-t border-border/60 pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 AmponPH. Built to help pets get a second chance.</p>
           <div className="flex items-center gap-5">
-            <Link href="#" className="transition-colors hover:text-primary">
+            <Link href="/privacy-policy" className="transition-colors hover:text-primary">
               Privacy
             </Link>
-            <Link href="#" className="transition-colors hover:text-primary">
+            <Link href="/terms-and-conditions" className="transition-colors hover:text-primary">
               Terms
             </Link>
             <Link href="/auth" className="transition-colors hover:text-primary">

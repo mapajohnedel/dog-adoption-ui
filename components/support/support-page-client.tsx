@@ -29,52 +29,56 @@ export function SupportPageClient() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-9rem)] bg-[linear-gradient(180deg,#fff8f2_0%,#eef7ff_45%,#fffaf6_100%)] py-12 md:py-16">
-      <div className="site-container max-w-5xl">
-        <header className="mb-10 text-center md:mb-12">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+    <div className="min-h-[calc(100vh-9rem)] bg-slate-50 py-16 md:py-24">
+      <div className="site-container max-w-4xl">
+        <header className="mb-12 text-center md:mb-16">
+          <span className="inline-flex items-center gap-2 rounded-full border border-orange-100 bg-orange-50 px-4 py-1.5 text-sm font-medium text-orange-600 mb-6">
+            <span className="flex h-2 w-2 rounded-full bg-orange-500"></span>
+            Donate
+          </span>
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 md:text-5xl">
             Support AmponPH 🐾
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground md:text-xl">
-            Help us continue connecting rescued dogs with loving homes.
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+            Help us continue connecting rescued dogs with loving homes. Your contribution goes directly to food, care, and rehoming efforts.
           </p>
         </header>
 
-        <Card className="gap-0 overflow-hidden rounded-[1.75rem] border-white/70 bg-white/90 p-0 shadow-[0_24px_70px_-40px_rgba(20,44,90,0.35)] backdrop-blur">
-          <CardHeader className="border-b border-border/60 bg-gradient-to-br from-[#f0f7ff] to-white pb-6 pt-6">
-            <CardTitle className="text-xl font-semibold text-foreground">GCash / Maya</CardTitle>
-            <p className="text-sm text-muted-foreground">
+        <Card className="gap-0 overflow-hidden rounded-3xl border-slate-200 bg-white p-0 shadow-sm">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/50 pb-6 pt-6 px-8">
+            <CardTitle className="text-xl font-bold text-slate-900">GCash / Maya</CardTitle>
+            <p className="text-sm text-slate-500">
               Send to this number using GCash or Maya. Thank you for supporting our mission.
             </p>
           </CardHeader>
-          <CardContent className="px-6 pb-6 pt-8">
-            <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
-              <div className="min-w-0 flex-1 space-y-8">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <CardContent className="p-8">
+            <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-12">
+              <div className="min-w-0 flex-1 space-y-10">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between rounded-2xl bg-slate-50 p-6 border border-slate-100">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
                       Mobile number
                     </p>
-                    <p className="mt-1 font-mono text-2xl font-semibold tracking-wide text-foreground">
+                    <p className="mt-2 font-mono text-3xl font-bold tracking-tight text-slate-900">
                       {DONATION_NUMBER}
                     </p>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      Account name: <span className="font-medium text-foreground">{ACCOUNT_NAME}</span>
+                    <p className="mt-2 text-sm text-slate-600">
+                      Account name: <span className="font-semibold text-slate-900">{ACCOUNT_NAME}</span>
                     </p>
                   </div>
                   <Button
                     type="button"
                     variant="outline"
-                    className="shrink-0 rounded-full border-[#d6e8fb] bg-white shadow-sm"
+                    className="shrink-0 rounded-full border-slate-200 bg-white shadow-sm hover:bg-slate-50 hover:text-slate-900"
                     onClick={copyNumber}
                   >
-                    <Copy className="h-4 w-4" />
+                    <Copy className="mr-2 h-4 w-4" />
                     Copy Number
                   </Button>
                 </div>
 
                 <div>
-                  <p className="mb-3 text-sm font-medium text-foreground">Suggested amounts</p>
+                  <p className="mb-4 text-sm font-semibold text-slate-900">Suggested amounts</p>
                   <div className="flex flex-wrap gap-3">
                     {SUGGESTED_AMOUNTS.map((amount) => (
                       <button
@@ -84,31 +88,33 @@ export function SupportPageClient() {
                         className={cn(
                           'rounded-full border px-6 py-2.5 text-sm font-semibold transition-all',
                           selectedAmount === amount
-                            ? 'border-primary bg-primary text-primary-foreground shadow-md'
-                            : 'border-border bg-white/80 text-foreground hover:border-primary/50 hover:bg-[#f0f7ff]',
+                            ? 'border-orange-500 bg-orange-500 text-white shadow-md'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900',
                         )}
                       >
                         ₱{amount}
                       </button>
                     ))}
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
+                  <p className="mt-3 text-sm text-slate-500">
                     For reference only — choose the same amount in your GCash or Maya app.
                   </p>
                 </div>
 
-                <p className="text-sm leading-relaxed text-muted-foreground lg:max-w-md">
-                  Open GCash, tap <span className="font-medium text-foreground">Scan QR</span>, and point your
-                  camera at the code on the right. Maya users can send to the mobile number above.
-                </p>
+                <div className="rounded-xl bg-blue-50/50 p-4 border border-blue-100/50">
+                  <p className="text-sm leading-relaxed text-slate-600">
+                    Open GCash, tap <span className="font-semibold text-slate-900">Scan QR</span>, and point your
+                    camera at the code on the right. Maya users can send to the mobile number above.
+                  </p>
+                </div>
               </div>
 
               <div className="flex shrink-0 flex-col items-center lg:sticky lg:top-24 lg:w-[min(100%,280px)] lg:items-stretch">
-                <p className="mb-3 w-full text-center text-sm font-medium text-foreground lg:text-left">
+                <p className="mb-4 w-full text-center text-sm font-semibold text-slate-900 lg:text-left">
                   Scan with GCash
                 </p>
                 {/* GCash blue matches the asset edges so rounding never shows white letterboxing */}
-                <div className="relative w-full max-w-[280px] overflow-hidden rounded-[1.35rem] bg-[#0073e6] leading-none shadow-[0_28px_64px_-24px_rgba(0,115,254,0.55),0_12px_32px_-12px_rgba(15,23,42,0.18)] ring-1 ring-black/[0.06] lg:max-w-none">
+                <div className="relative w-full max-w-[280px] overflow-hidden rounded-3xl bg-[#0073e6] leading-none shadow-lg ring-1 ring-slate-900/5 lg:max-w-none">
                   <Image
                     src="/support/gcash-qr.png"
                     alt="GCash QR code — scan to send a donation to AmponPH"
@@ -124,14 +130,17 @@ export function SupportPageClient() {
           </CardContent>
         </Card>
 
-        <div className="mt-10 flex items-start gap-4 rounded-2xl border border-[#e3eef8] bg-white/70 p-6 shadow-sm backdrop-blur md:mt-12 md:p-8">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Heart className="h-5 w-5" strokeWidth={2} />
+        <div className="mt-12 flex items-start gap-5 rounded-3xl border border-orange-100 bg-orange-50 p-6 md:p-8">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-100 text-orange-600">
+            <Heart className="h-6 w-6" strokeWidth={2.5} />
           </div>
-          <p className="text-base leading-relaxed text-muted-foreground md:text-lg">
-            Every small amount helps feed, rescue, and rehome dogs in need. Thank you for being part
-            of AmponPH.
-          </p>
+          <div>
+            <h3 className="font-bold text-orange-900 mb-1">Thank you for your kindness</h3>
+            <p className="text-base leading-relaxed text-orange-800/80">
+              Every small amount helps feed, rescue, and rehome dogs in need. Thank you for being part
+              of AmponPH.
+            </p>
+          </div>
         </div>
       </div>
     </div>
