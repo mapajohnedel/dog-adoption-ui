@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { catBreedOptions, dogBreedOptions } from '@/lib/breed-options'
 import type { Dog } from '@/lib/mock-dogs'
 import { createClient } from '@/lib/supabase/server'
 
@@ -83,15 +84,53 @@ function mapPetToDog(
   }
 }
 
-export async function listPublishedPets() {
+export type PetFilters = {
+  species?: string
+  breed?: string
+  minAge?: number
+  maxAge?: number
+  size?: string
+  location?: string
+}
+
+export async function listPublishedPets(
+  filters: PetFilters = {},
+  page: number = 1,
+  limit: number = 12
+) {
   const supabase = await createClient()
-  const { data: pets, error: petsError } = await supabase
+  let query = supabase
     .from('pets')
     .select(
-      'id, partner_user_id, name, breed, age_years, gender, size, location, description, image_url, image_urls, vaccinated, neutered, status'
+      'id, partner_user_id, name, breed, age_years, gender, size, location, description, image_url, image_urls, vaccinated, neutered, status',
+      { count: 'exact' }
     )
     .eq('status', 'published')
+
+  if (filters.species) {
+    if (filters.species === 'cat') {
+      query = query.in('breed', catBreedOptions)
+    } else if (filters.species === 'dog') {
+      query = query.in('breed', dogBreedOptions)
+    }
+  }
+
+  if (filters.breed) {
+    query = query.ilike('breed', `%${filters.breed}%`)
+  }
+  if (filters.size) {
+    query = query.eq('size', filters.size)
+  }
+  if (filters.location) {
+    query = query.ilike('location', `%${filters.location}%`)
+  }
+
+  const from = (page - 1) * limit
+  const to = from + limit - 1
+
+  const { data: pets, error: petsError, count } = await query
     .order('published_at', { ascending: false })
+    .range(from, to)
 
   if (petsError) {
     throw new Error(petsError.message)
@@ -121,5 +160,11 @@ export async function listPublishedPets() {
     partnerProfiles.map((profile) => [profile.user_id, profile])
   )
 
-  return petRows.map((pet) => mapPetToDog(pet, profileByUserId.get(pet.partner_user_id)))
+  const mappedPets = petRows.map((pet) => mapPetToDog(pet, profileByUserId.get(pet.partner_user_id)))
+
+  return {
+    data: mappedPets,
+    count: count ?? 0,
+    totalPages: count ? Math.ceil(count / limit) : 0,
+  }
 }

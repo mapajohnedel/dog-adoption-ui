@@ -1,27 +1,20 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
 import { ArrowRight, HeartHandshake, Search } from 'lucide-react'
 import { DogCard } from '@/components/dog-card'
-import { type FilterOptions, DogFilter } from '@/components/dog-filter'
-import { filterDogs, type Dog } from '@/lib/mock-dogs'
+import { DogFilter } from '@/components/dog-filter'
+import { type Dog } from '@/lib/mock-dogs'
+import { BrowsePagination } from './browse-pagination'
 
 type BrowsePageClientProps = {
   dogs: Dog[]
+  currentPage: number
+  totalPages: number
+  totalCount: number
 }
 
-export function BrowsePageClient({ dogs }: BrowsePageClientProps) {
-  const [filters, setFilters] = useState<FilterOptions>({})
-
-  const handleFilterChange = (nextFilters: FilterOptions) => {
-    setFilters(nextFilters)
-  }
-
-  const filteredDogs = useMemo(() => {
-    return filterDogs(filters, dogs)
-  }, [dogs, filters])
-
+export function BrowsePageClient({ dogs, currentPage, totalPages, totalCount }: BrowsePageClientProps) {
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#fff8f2_0%,#eef7ff_42%,#fffaf6_100%)]">
       <section className="relative overflow-hidden pb-16 pt-12">
@@ -29,7 +22,7 @@ export function BrowsePageClient({ dogs }: BrowsePageClientProps) {
         <div className="absolute right-[12%] top-20 -z-10 h-28 w-28 rounded-full bg-[#84c5ff]/25 blur-3xl" />
 
         <div className="site-container">
-          <div className="mb-12 rounded-[2.5rem] border border-white/70 bg-white/75 p-8 shadow-[0_30px_80px_-35px_rgba(20,44,90,0.35)] backdrop-blur sm:p-10">
+          {/* <div className="mb-12 rounded-[2.5rem] border border-white/70 bg-white/75 p-8 shadow-[0_30px_80px_-35px_rgba(20,44,90,0.35)] backdrop-blur sm:p-10">
             <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-2xl space-y-4">
                 <span className="inline-flex rounded-full bg-[#ffefe6] px-4 py-1.5 text-sm font-semibold text-primary shadow-sm">
@@ -46,9 +39,9 @@ export function BrowsePageClient({ dogs }: BrowsePageClientProps) {
 
               <div className="grid gap-4 sm:grid-cols-3 lg:min-w-[24rem]">
                 <div className="rounded-[1.75rem] bg-[#fff7f1] p-5 shadow-sm">
-                  <p className="text-2xl font-bold text-foreground">{filteredDogs.length}</p>
+                  <p className="text-2xl font-bold text-foreground">{totalCount}</p>
                   <p className="text-sm text-muted-foreground">
-                    Available dog{filteredDogs.length !== 1 ? 's' : ''}
+                    Available pet{totalCount !== 1 ? 's' : ''}
                   </p>
                 </div>
                 <div className="rounded-[1.75rem] bg-[#f3f9ff] p-5 shadow-sm">
@@ -78,12 +71,12 @@ export function BrowsePageClient({ dogs }: BrowsePageClientProps) {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-          </div>
+          </div> */}
 
-          <div id="pet-results" className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
+          <div id="pet-results" className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)] items-start">
             <div>
               <div className="sticky top-24 space-y-4">
-                <DogFilter onFilterChange={handleFilterChange} />
+                <DogFilter />
                 <div className="rounded-[1.5rem] border border-white/70 bg-white/80 p-4 shadow-[0_18px_45px_-28px_rgba(20,44,90,0.28)] backdrop-blur">
                   <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-[#3b82f6]/15 text-primary">
                     <HeartHandshake className="h-5 w-5" />
@@ -98,15 +91,18 @@ export function BrowsePageClient({ dogs }: BrowsePageClientProps) {
             </div>
 
             <div>
-              {filteredDogs.length > 0 ? (
-                <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                  {filteredDogs.map((dog) => (
-                    <DogCard key={dog.id} dog={dog} />
-                  ))}
-                </div>
+              {dogs.length > 0 ? (
+                <>
+                  <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                    {dogs.map((dog) => (
+                      <DogCard key={dog.id} dog={dog} />
+                    ))}
+                  </div>
+                  <BrowsePagination currentPage={currentPage} totalPages={totalPages} />
+                </>
               ) : (
                 <div className="flex flex-col items-center justify-center rounded-[2.5rem] border border-white/70 bg-white/80 py-20 text-center shadow-[0_24px_70px_-36px_rgba(20,44,90,0.35)] backdrop-blur">
-                  <p className="mb-3 text-2xl font-semibold text-foreground">No dogs found</p>
+                  <p className="mb-3 text-2xl font-semibold text-foreground">No pets found</p>
                   <p className="max-w-md text-base leading-7 text-muted-foreground">
                     Try adjusting your filters to see more available pets near your preferred
                     location.

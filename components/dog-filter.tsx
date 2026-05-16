@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ChevronDown, Filter, MapPin, SlidersHorizontal } from 'lucide-react'
 import { dogBreedOptions, catBreedOptions } from '@/lib/breed-options'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   getCityOptionsByProvince,
   getProvinceLabel,
@@ -18,16 +19,19 @@ export interface FilterOptions {
   location?: string
 }
 
-interface DogFilterProps {
-  onFilterChange: (filters: FilterOptions) => void
-}
-
 const sizes = ['small', 'medium', 'large']
 
-export function DogFilter({ onFilterChange }: DogFilterProps) {
-  const [species, setSpecies] = useState<string>('')
-  const [breed, setBreed] = useState<string>('')
-  const [size, setSize] = useState<string>('')
+export function DogFilter() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const [species, setSpecies] = useState<string>(searchParams.get('species') || '')
+  const [breed, setBreed] = useState<string>(searchParams.get('breed') || '')
+  const [size, setSize] = useState<string>(searchParams.get('size') || '')
+  
+  // Try to derive province and city from location param if needed, or just use simple local state 
+  // since location is stored as a single string "City, Province" or "Province" in the DB.
+  // For simplicity, we keep the UI state local but update the URL on apply.
   const [selectedProvinceKey, setSelectedProvinceKey] = useState<string>('')
   const [city, setCity] = useState<string>('')
   const [isExpanded, setIsExpanded] = useState(true)
@@ -44,16 +48,25 @@ export function DogFilter({ onFilterChange }: DogFilterProps) {
     const nextSize = nextValues?.size ?? size
     const nextProvinceKey = nextValues?.provinceKey ?? selectedProvinceKey
     const nextCity = nextValues?.city ?? city
-    const filters: FilterOptions = {}
-    const nextLocation =
-      nextCity || (nextProvinceKey ? getProvinceLabel(nextProvinceKey) : '')
+    const nextLocation = nextCity || (nextProvinceKey ? getProvinceLabel(nextProvinceKey) : '')
+    const params = new URLSearchParams(searchParams.toString())
 
-    if (nextSpecies) filters.species = nextSpecies
-    if (nextBreed) filters.breed = nextBreed
-    if (nextSize) filters.size = nextSize
-    if (nextLocation) filters.location = nextLocation
+    // Always reset page to 1 when filters change
+    params.delete('page')
 
-    onFilterChange(filters)
+    if (nextSpecies) params.set('species', nextSpecies)
+    else params.delete('species')
+
+    if (nextBreed) params.set('breed', nextBreed)
+    else params.delete('breed')
+
+    if (nextSize) params.set('size', nextSize)
+    else params.delete('size')
+
+    if (nextLocation) params.set('location', nextLocation)
+    else params.delete('location')
+
+    router.push(`?${params.toString()}`)
   }
 
   const handleReset = () => {
@@ -62,7 +75,7 @@ export function DogFilter({ onFilterChange }: DogFilterProps) {
     setSize('')
     setSelectedProvinceKey('')
     setCity('')
-    onFilterChange({})
+    router.push('?')
   }
 
   return (

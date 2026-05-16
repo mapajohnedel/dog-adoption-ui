@@ -63,7 +63,7 @@ const happyTails = [
 ]
 
 export default async function Home() {
-  const dogs = await listPublishedPets()
+  const { data: dogs } = await listPublishedPets()
   const featuredDogs = dogs.slice(0, 4)
 
   return (
