@@ -47,7 +47,7 @@ export function PetCard({ dog }: PetCardProps) {
     if (loading) return
     if (!requireLogin()) return
 
-    router.push(`/browse/${dog.id}#contact-shelter`)
+    router.push(`/browse/${dog.id}`)
   }
 
   return (

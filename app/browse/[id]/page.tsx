@@ -14,7 +14,7 @@ import {
   Share2,
   Sparkles,
 } from 'lucide-react'
-import { listPublishedPets } from '@/lib/pets/server'
+import { listPublishedPets, getPublishedPetById } from '@/lib/pets/server'
 
 export default async function DogProfilePage({
   params,
@@ -22,15 +22,16 @@ export default async function DogProfilePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const dogs = await listPublishedPets()
-  const dog = dogs.find((entry) => entry.id === id)
+  const dog = await getPublishedPetById(id)
 
   if (!dog) {
     notFound()
   }
 
+  const { data: recentPets } = await listPublishedPets()
+
   // Get related dogs (same breed or similar)
-  const relatedDogs = dogs
+  const relatedDogs = recentPets
     .filter(
       (d) =>
         d.id !== dog.id &&

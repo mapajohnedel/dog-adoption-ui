@@ -168,3 +168,30 @@ export async function listPublishedPets(
     totalPages: count ? Math.ceil(count / limit) : 0,
   }
 }
+
+export async function getPublishedPetById(id: string) {
+  const supabase = await createClient()
+  const { data: pet, error } = await supabase
+    .from('pets')
+    .select(
+      'id, partner_user_id, name, breed, age_years, gender, size, location, description, image_url, image_urls, vaccinated, neutered, status'
+    )
+    .eq('id', id)
+    .eq('status', 'published')
+    .single()
+
+  if (error || !pet) {
+    return null
+  }
+
+  const { data: profiles } = await supabase.rpc(
+    'get_public_partner_profiles',
+    {
+      partner_ids: [pet.partner_user_id],
+    }
+  )
+
+  const profile = profiles?.[0] as PartnerProfileSummary | undefined
+
+  return mapPetToDog(pet as PetRow, profile)
+}

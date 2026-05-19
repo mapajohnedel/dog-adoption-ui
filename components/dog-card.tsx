@@ -91,7 +91,7 @@ export function DogCard({ dog, layout = 'default' }: DogCardProps) {
     if (loading) return
     if (!requireLogin()) return
 
-    router.push(`/browse/${dog.id}#contact-shelter`)
+    router.push(`/browse/${dog.id}`)
   }
 
   const handleFavoriteClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
